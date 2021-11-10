@@ -11,8 +11,16 @@ import UIKit
 
 final class MonthCell: KVKCollectionViewCell {
     
-    private let titlesCount = 3
-    private let countInCell: CGFloat = 4
+    #warning("Pod_modified")
+    //MARK: - OEM
+    //private let titlesCount = 3
+    private let titlesCount = 5
+    
+    #warning("Pod_modified")
+    //MARK: - OEM
+    //private let countInCell: CGFloat = 4
+    private let countInCell: CGFloat = 7
+    
     private let offset: CGFloat = 3
     private let defaultTagView = -1
     private let defaultTagStubView = -2
@@ -100,17 +108,35 @@ final class MonthCell: KVKCollectionViewCell {
             let height = (frame.height - dateLabel.bounds.height - 5) / countInCell
             
             for (idx, event) in events.enumerated() {
-                let width = frame.width - 10
+                #warning("Pod_modified")
+                //MARK: - OEM
+                //let width = frame.width - 10
+                let width = frame.width - 2
+                
                 let count = idx + 1
-                let label = UILabel(frame: CGRect(x: 5,
+                
+                #warning("Pod_modified")
+                //MARK: - OEM
+                //let label = UILabel(frame: CGRect(x: 5,
+                //                                  y: 5 + dateLabel.bounds.height + height * CGFloat(idx),
+                //                                  width: width,
+                //                                  height: height))
+                let label = UILabel(frame: CGRect(x: 0,
                                                   y: 5 + dateLabel.bounds.height + height * CGFloat(idx),
                                                   width: width,
                                                   height: height))
+                ///# Reduces leading gap between cell and event label.
+                
                 label.isUserInteractionEnabled = true
                 
                 if count > titlesCount {
                     label.font = monthStyle.fontEventTitle
-                    label.lineBreakMode = .byTruncatingMiddle
+                    
+                    #warning("Pod_modified")
+                    //MARK: - OEM
+                    //label.lineBreakMode = .byTruncatingMiddle
+                    label.lineBreakMode = .byClipping
+                    
                     label.adjustsFontSizeToFitWidth = true
                     label.minimumScaleFactor = 0.95
                     label.textAlignment = .center
@@ -146,13 +172,23 @@ final class MonthCell: KVKCollectionViewCell {
                                                                   paragraphSpacing: 0)
                     } else {
                         label.font = monthStyle.fontEventTitle
-                        label.lineBreakMode = .byTruncatingMiddle
+                        
+                        #warning("Pod_modified")
+                        //MARK: - OEM
+                        //label.lineBreakMode = .byTruncatingMiddle
+                        label.lineBreakMode = .byClipping
+                        
                         label.adjustsFontSizeToFitWidth = true
                         label.minimumScaleFactor = 0.95
                         label.textAlignment = .left
                         label.backgroundColor = event.color?.value ?? .systemGray
                         label.textColor = allDayStyle.textColor
-                        label.text = " \(event.text) "
+                        
+                        #warning("Pod_modified")
+                        //MARK: - OEM
+                        //label.text = " \(event.text) "
+                        label.text = "\(event.text)"
+                        
                         label.setRoundCorners(monthStyle.eventCorners, radius: monthStyle.eventCornersRadius)
                     }
                     
@@ -240,7 +276,12 @@ final class MonthCell: KVKCollectionViewCell {
             dateFrame.size = CGSize(width: 30, height: 30)
             dateFrame.origin.x = (frame.width - dateFrame.width) - offset
         } else {
-            let newWidth = frame.width > 30 ? 30 : frame.width
+            #warning("Pod_modified")
+            //MARK: - OEM
+            //let newWidth = frame.width > 30 ? 30 : frame.width
+            let newWidth = frame.width > 30 ? 23 : frame.width
+            ///# Reduces frame of date label in month cell.
+            
             dateFrame.size = CGSize(width: newWidth, height: newWidth)
             dateFrame.origin.x = (frame.width / 2) - (dateFrame.width / 2)
         }
@@ -388,7 +429,11 @@ final class MonthCell: KVKCollectionViewCell {
         paragraphStyle.lineSpacing = lineSpacing
         paragraphStyle.paragraphSpacing = paragraphSpacing
         paragraphStyle.headIndent = indentation
-        paragraphStyle.lineBreakMode = .byTruncatingMiddle
+        
+        #warning("Pod_modified")
+        //MARK: - OEM
+        //paragraphStyle.lineBreakMode = .byTruncatingMiddle
+        paragraphStyle.lineBreakMode = .byClipping
         
         return eventList.reduce(NSMutableAttributedString()) { (_, event) -> NSMutableAttributedString in
             let text: String
