@@ -168,7 +168,7 @@ public extension Event {
     //MARK: - OEM
     //enum RecurringType: Int {
     //    case everyDay, everyWeek, everyMonth, everyYear, none
-    //}    
+    //}
     enum RecurringType: Int {
         case everyDay,
              everyWeek,
@@ -204,6 +204,54 @@ extension Event: EventProtocol {
 }
 
 extension Event {
+    #warning("Pod_modified")
+    //MARK: - OEM
+//    func updateDate(newDate: Date?, calendar: Calendar = Calendar.current) -> Event? {
+//        var startComponents = DateComponents()
+//        startComponents.year = newDate?.year
+//        startComponents.month = newDate?.month
+//        startComponents.hour = start.hour
+//        startComponents.minute = start.minute
+//
+//        var endComponents = DateComponents()
+//        endComponents.year = newDate?.year
+//        endComponents.month = newDate?.month
+//        endComponents.hour = end.hour
+//        endComponents.minute = end.minute
+//
+//        switch recurringType {
+//        case .everyDay:
+//            startComponents.day = newDate?.day
+//        case .everyWeek where newDate?.weekday == start.weekday:
+//            startComponents.day = newDate?.day
+//            startComponents.weekday = newDate?.weekday
+//            endComponents.weekday = newDate?.weekday
+//        case .everyMonth where newDate?.month != start.month && newDate?.day == start.day:
+//            startComponents.day = newDate?.day
+//        case .everyYear where newDate?.year != start.year && newDate?.month == start.month && newDate?.day == start.day:
+//            startComponents.day = newDate?.day
+//        default:
+//            return nil
+//        }
+//
+//        let offsetDay = end.day - start.day
+//        if start.day == end.day {
+//            endComponents.day = newDate?.day
+//        } else if let newDay = newDate?.day {
+//            endComponents.day = newDay + offsetDay
+//        } else {
+//            endComponents.day = newDate?.day
+//        }
+//
+//        guard let newStart = calendar.date(from: startComponents), let newEnd = calendar.date(from: endComponents) else { return nil }
+//
+//        var newEvent = self
+//        newEvent.start = newStart
+//        newEvent.end = newEnd
+//        return newEvent
+//    }
+    
+    
     func updateDate(newDate: Date?, calendar: Calendar = Calendar.current) -> Event? {
         var startComponents = DateComponents()
         startComponents.year = newDate?.year
@@ -217,20 +265,101 @@ extension Event {
         endComponents.hour = end.hour
         endComponents.minute = end.minute
         
-        switch recurringType {
-        case .everyDay:
-            startComponents.day = newDate?.day
-        case .everyWeek where newDate?.weekday == start.weekday:
-            startComponents.day = newDate?.day
-            startComponents.weekday = newDate?.weekday
-            endComponents.weekday = newDate?.weekday
-        case .everyMonth where newDate?.month != start.month && newDate?.day == start.day:
-            startComponents.day = newDate?.day
-        case .everyYear where newDate?.year != start.year && newDate?.month == start.month && newDate?.day == start.day:
-            startComponents.day = newDate?.day
-        default:
-            return nil
+        
+        
+        var newDateModulo: Int = 999
+        var recurrenceEndDate: Date = Date()
+        
+        if let dictionary = data as? [String : Any] {
+            if let newDate = newDate,
+               let recurrenceFrequency = dictionary["RF"] as? Int {
+                
+                let adjustedDate = newDate < self.start ? recurrenceEndDate : newDate
+                let fallbackDate = calendar.date(byAdding: .month, value: 2, to: adjustedDate)!
+                
+                recurrenceEndDate = dictionary["RED"] as? Date ?? fallbackDate
+                while recurrenceEndDate < self.start {
+                    recurrenceEndDate = calendar.date(byAdding: .month, value: 1, to: recurrenceEndDate)!
+                }
+                let recurrenceRange = (self.start...recurrenceEndDate)
+                
+                
+                if (recurrenceRange.contains( newDate)) {
+                    switch recurringType {
+                    case .everyXDays:
+                        if let difference = calendar.dateComponents([.day], from: start.startOfDay!, to: newDate.startOfDay!).day {
+                            newDateModulo = difference % recurrenceFrequency
+                        }
+                        guard newDateModulo == 0 else { return nil }
+                        startComponents.day = newDate.day
+                        
+                        
+                    case .everyXWeeks:
+                        if let difference = calendar.dateComponents([.weekOfMonth], from: start.startSundayOfWeek!, to: newDate.startSundayOfWeek!).weekOfMonth {
+                            newDateModulo = difference % recurrenceFrequency
+                        }
+                        guard newDate.weekday == start.weekday && newDateModulo == 0 else { return nil }
+                        startComponents.day = newDate.day
+                        startComponents.weekday = newDate.weekday
+                        endComponents.weekday = newDate.weekday
+                        
+                        
+                    case .everyXMonths:
+                        if let difference = calendar.dateComponents([.month], from: start.startOfMonth!, to: newDate.startOfMonth!).month {
+                            newDateModulo = difference % recurrenceFrequency
+                        }
+                        guard newDate.month != start.month && newDateModulo == 0 else { return nil }
+                        
+                        if let recurrenceWeek = dictionary["RW"] as? Int,
+                           let recurrenceWeekday = dictionary["RWd"] as? Int {
+                            guard (newDate.day / 7) + 1 == recurrenceWeek && (newDate.weekday - 1) == recurrenceWeekday else { return nil }
+                            startComponents.day = newDate.day
+                        } else {
+                            guard newDate.day == start.day else { return nil }
+                            startComponents.day = newDate.day
+                        }
+                        
+                        
+                    case .everyXYears:
+                        //are multiple var's needed?
+                        var yearComponents = DateComponents()
+                        yearComponents.year = start.year
+                        let startYear = calendar.date(from: yearComponents)!
+                        
+                        yearComponents.year = newDate.year
+                        let newDateYear = calendar.date(from: yearComponents)!
+                        
+                        if let difference = calendar.dateComponents([.year], from: startYear, to: newDateYear).year {
+                            newDateModulo = difference % recurrenceFrequency
+                        }
+                        guard newDate.year != start.year && newDate.month == start.month && newDate.day == start.day && newDateModulo == 0 else { return nil }
+                        startComponents.day = newDate.day
+                        
+                    default:
+                        return nil
+                    }
+                } else {
+                    return nil
+                }
+            }
+            
+        } else {
+            switch recurringType {
+            case .everyDay:
+                startComponents.day = newDate?.day
+            case .everyWeek where newDate?.weekday == start.weekday:
+                startComponents.day = newDate?.day
+                startComponents.weekday = newDate?.weekday
+                endComponents.weekday = newDate?.weekday
+            case .everyMonth where newDate?.month != start.month && newDate?.day == start.day:
+                startComponents.day = newDate?.day
+            case .everyYear where newDate?.year != start.year && newDate?.month == start.month && newDate?.day == start.day:
+                startComponents.day = newDate?.day
+            default:
+                return nil
+            }
         }
+        
         
         let offsetDay = end.day - start.day
         if start.day == end.day {
@@ -248,6 +377,8 @@ extension Event {
         newEvent.end = newEnd
         return newEvent
     }
+    
+    
 }
 
 // MARK: - Event protocol
