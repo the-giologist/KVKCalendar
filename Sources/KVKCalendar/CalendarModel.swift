@@ -164,8 +164,21 @@ public extension Event {
         return ID == Event.idForNewEvent
     }
     
+    #warning("Pod_modified")
+    //MARK: - OEM
+    //enum RecurringType: Int {
+    //    case everyDay, everyWeek, everyMonth, everyYear, none
+    //}    
     enum RecurringType: Int {
-        case everyDay, everyWeek, everyMonth, everyYear, none
+        case everyDay,
+             everyWeek,
+             everyMonth,
+             everyYear,
+             none,
+             everyXDays,
+             everyXWeeks,
+             everyXMonths,
+             everyXYears
     }
     
     struct Color {
