@@ -312,8 +312,18 @@ extension Event {
                         
                         if let recurrenceWeek = dictionary["RW"] as? Int,
                            let recurrenceWeekday = dictionary["RWd"] as? Int {
-                            guard (newDate.day / 7) + 1 == recurrenceWeek && (newDate.weekday - 1) == recurrenceWeekday else { return nil }
+                            guard (newDate.weekday - 1) == recurrenceWeekday else { return nil }
+                            
+                            if (recurrenceWeek == 6) {
+                                let lastWeekOfMonthStart = calendar.date(byAdding: .day, value: -6, to: newDate.endOfMonth!)!.day
+                                let lastWeekOfMonthEnd = newDate.endOfMonth!.day
+                                guard (lastWeekOfMonthStart...lastWeekOfMonthEnd).contains( newDate.day) else { return nil }
+                            } else {
+                                guard Int( ceil(Double(newDate.day) / Double(7)) ) == recurrenceWeek else { return nil }
+                            }
                             startComponents.day = newDate.day
+                            
+                            
                         } else {
                             guard newDate.day == start.day else { return nil }
                             startComponents.day = newDate.day
