@@ -120,7 +120,12 @@ final class MonthData: EventDateProtocol {
         var displayableEvents = [Event]()
         let updatedDays = days.reduce([], { (acc, day) -> [Day] in
             var newDay = day
-            guard newDay.events.isEmpty else { return acc + [day] }
+            
+            #warning("Pod_modified")
+            //MARK: - OEM
+            //guard newDay.events.isEmpty else { return acc + [day] }
+            newDay.events = []
+            ///# Removed OEM line to reload cells with .events and clear previous events.
             
             let filteredEventsByDay = events.filter({ compareStartDate(day.date, with: $0) && !$0.isAllDay })
             let filteredAllDayEvents = events.filter({ $0.isAllDay })
