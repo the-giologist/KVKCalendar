@@ -129,7 +129,27 @@ final class MonthData: EventDateProtocol {
             
             let filteredEventsByDay = events.filter({ compareStartDate(day.date, with: $0) && !$0.isAllDay })
             let filteredAllDayEvents = events.filter({ $0.isAllDay })
-            let allDayEvents = filteredAllDayEvents.filter({ compareStartDate(day.date, with: $0) || compareEndDate(day.date, with: $0) })
+            
+            #warning("Pod_modified")
+            //MARK: - OEM
+            //let allDayEvents = filteredAllDayEvents.filter({ compareStartDate(day.date, with: $0) || compareEndDate(day.date, with: $0) })
+            var allDayEvents = filteredAllDayEvents.filter({ compareStartDate(day.date, with: $0) || compareEndDate(day.date, with: $0) })
+            
+            #warning("Pod_modified")
+            allDayEvents = allDayEvents.reduce([], { (partialResult, event) -> [Event] in
+                if let dateStartOfDay = day.date?.startOfDay,
+                   let dictionary = event.data as? [String : Any],
+                   let recurrenceDeletedDates = dictionary["RDD"] as? Set<Date> {
+                    if (recurrenceDeletedDates.contains( dateStartOfDay)) {
+                        return partialResult
+                    } else {
+                        return partialResult + [event]
+                    }
+                } else {
+                    return partialResult + [event]
+                }
+            })
+            ///# Added .reduce closure to filter out Events where .recurrenceDeletedDates contain day.date.
             
             let recurringEventByDate: [Event]
             if !recurringEvents.isEmpty, let date = day.date {
