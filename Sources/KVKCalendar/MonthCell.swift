@@ -159,7 +159,10 @@ final class MonthCell: KVKCollectionViewCell {
                     contentView.addSubview(label)
                     return
                 } else {
-                    if !event.isAllDay || UIDevice.current.userInterfaceIdiom == .phone {
+                    #warning("Pod_modified")
+                    //MARK: - OEM
+                    //if !event.isAllDay || UIDevice.current.userInterfaceIdiom == .phone {
+                    if !event.isAllDay /*|| UIDevice.current.userInterfaceIdiom == .phone */ {
                         label.attributedText = addIconBeforeLabel(eventList: [event],
                                                                   textAttributes: [.font: monthStyle.fontEventTitle,
                                                                                    .foregroundColor: monthStyle.colorEventTitle],
